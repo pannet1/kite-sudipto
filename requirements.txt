@@ -1,0 +1,4 @@
+PyYAML
+playwright
+pyotp
+python-dateutil
