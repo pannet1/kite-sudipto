@@ -1,28 +1,5 @@
-import yaml
 import requests
-import pyotp
 import dateutil.parser
-
-
-def get_config_from_yaml(input_file: str) -> dict:
-    with open(input_file, "r") as yamlfile:
-        config_data =  yaml.safe_load(yamlfile)
-        return config_data[0]
-    
-
-def get_enctoken(userid: str, password: str, twofa: str) -> str:
-    session = requests.Session()
-    response = session.post('https://kite.zerodha.com/api/login', data={'user_id':userid, 
-     'password':password})
-    response = session.post('https://kite.zerodha.com/api/twofa', data={'request_id':response.json()['data']['request_id'], 
-     'twofa_value':twofa, 
-     'user_id':response.json()['data']['user_id']})
-    enctoken = response.cookies.get('enctoken')
-    if enctoken:
-        return enctoken
-    raise Exception('Enter valid details !!!!')
-
-
 
 class KiteApp:
     PRODUCT_MIS = 'MIS'
@@ -137,17 +114,14 @@ class KiteApp:
           headers=(self.headers)).json()['data']['order_id']
         return order_id
     
-
-if __name__ == "__main__":
-    config_file = "config.yaml" 
-    configuration_details = get_config_from_yaml(config_file) 
-    username = configuration_details.get('creds').get('username')
-    password = configuration_details.get('creds').get('password')
-    t_otp = configuration_details.get('creds').get('totp')
-    t_otp = "YUJCW6DKCUANAW4F2GPTTARYKPZHFEXD"
-    otp = pyotp.TOTP(t_otp).now()
-    enc_token = get_enctoken(username, password, otp)
-    kite_app = KiteApp(enc_token)
-    print(kite_app.profile())
-
-
+def get_enctoken(userid: str, password: str, twofa: str) -> str:
+    session = requests.Session()
+    response = session.post('https://kite.zerodha.com/api/login', data={'user_id':userid, 
+     'password':password})
+    response = session.post('https://kite.zerodha.com/api/twofa', data={'request_id':response.json()['data']['request_id'], 
+     'twofa_value':twofa, 
+     'user_id':response.json()['data']['user_id']})
+    enctoken = response.cookies.get('enctoken')
+    if enctoken:
+        return enctoken
+    raise Exception('Enter valid details !!!!')
