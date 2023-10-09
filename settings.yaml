@@ -1,5 +1,22 @@
-credentials:
-  username: AB1111
-  password: XXXXXXXX
-  time_based_otp_key: XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+- credentials:
+    username: XXXXX
+    password: XXXX
+    time_based_otp_key: XXXXXXXXXXXXXXXXXXXXX
 
+- symbols:
+  - common
+      multiplier: 1
+  - BANKNIFTY
+      underlying: 'NSE:BANKNIFTY'
+      ce: -100
+      pe: 100
+      expiry: 23OCT
+      lotsize: 45
+      stoploss: 20
+  - NIFTY
+      underlying: 'NSE:NIFTY 50'
+      ce: -200
+      pe: 200
+      expiry: 23OCT
+      lotsize: 25
+      stoploss: 10
