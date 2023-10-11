@@ -2,10 +2,24 @@ import yaml
 import pyotp
 
 
-diff_of_symbols = {
-    "NIFTY": 50,
-    "BANKNIFTY": 100,
-}
+def get_ltp_from_redis(instrument_or_symbol):
+    pass
+
+def merge_common_to_symbols(input_with_common: list[dict]):
+    output_without_common: dict = {}
+    common_items = {}
+    
+    for item in input_with_common:
+        if "common" in item:
+            common_items.update(item["common"])
+            break
+    for item in input_with_common:
+        if "common" not in item:
+            for k, v in item.items():
+                v.update(common_items)
+            output_without_common.update(item)
+
+    return output_without_common
 
 def get_config_from_yaml() -> list[dict]:
     with open("../../../settings.yaml", "r") as yamlfile:
@@ -15,18 +29,3 @@ def get_config_from_yaml() -> list[dict]:
 
 def get_otp(t_otp) -> str:
     return pyotp.TOTP(t_otp).now()
-
-def get_atm(symbol: str, ltp, pe_or_ce="pe") -> int:
-    symbol = symbol.upper()
-    diff = diff_of_symbols.get(symbol)
-    current_strike = ltp - (ltp % diff)
-    next_higher_strike = current_strike - diff
-    if pe_or_ce=="pe":
-        next_higher_strike = current_strike + diff
-    if ltp - current_strike < next_higher_strike - ltp:
-        return int(current_strike)
-    return int(next_higher_strike)
-
-def coin_option_name_with_expiry(symbol, expiry, atm, pe_or_ce):
-    # NIFTY23OCT17750CE
-    return symbol.upper() + expiry.upper() + str(atm) + pe_or_ce.upper()
