@@ -3,20 +3,24 @@
     password: XXXX
     time_based_otp_key: XXXXXXXXXXXXXXXXXXXXX
 
-- symbols:
-  - common
+symbols:
+  - common:
       multiplier: 1
-  - BANKNIFTY
+  - BANKNIFTY:
       underlying: 'NSE:BANKNIFTY'
-      ce: -100
-      pe: 100
+      ce: -500
+      pe: 500
+      diff: 100
       expiry: 23OCT
       lotsize: 45
       stoploss: 20
-  - NIFTY
+      segment: NFO-OPT
+  - NIFTY:
       underlying: 'NSE:NIFTY 50'
       ce: -200
       pe: 200
+      diff: 50
       expiry: 23OCT
       lotsize: 25
       stoploss: 10
+      segment: NFO-OPT

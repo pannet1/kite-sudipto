@@ -11,18 +11,18 @@ def get_instrument_token(option_name, df):
 
 def coin_option_names(symbol_details_from_config, instrument_details):
     symbol_details = utils.merge_common_to_symbols(symbol_details_from_config)
+    output_symbol_details = {}
     for symbol, details in symbol_details.items():
         ltp = utils.get_ltp_from_redis(details['underlying'])
         atm = utils.get_atm(details['diff'], ltp)
         for i in ["ce", "pe"]:
             val = atm + details[i]
             option_name = symbol+details['expiry']+str(val)+i.upper()
-            details["option_name"] = option_name
             instrument_token = get_instrument_token(option_name, instrument_details)
-            details["url"] = kite_chart_url.format(segment=details['segment'], 
+            output_symbol_details[option_name] = kite_chart_url.format(segment=details['segment'], 
                                                    option_name=option_name, 
                                                    instrument_token=instrument_token)
-    return symbol_details
+    return output_symbol_details
     
 
 if __name__ == "__main__":
@@ -31,15 +31,14 @@ if __name__ == "__main__":
     username: str = credentials.get('username')
     password: str = credentials.get('password')
     t_otp: str = credentials.get('time_based_otp_key')
-    otp: str = utils.get_otp(t_otp)
-    print(otp)
     symbol_details_from_config: list[dict] = configuration_details.get('symbols')
     instrument_details = utils.get_instrument_details()
     symbol_details = coin_option_names(symbol_details_from_config, instrument_details)
     
     pprint.pprint(symbol_details)
     
-
+    # otp: str = utils.get_otp(t_otp)
+    # print(otp)
     # enc_token = kite_connect.get_enctoken(username, password, otp)
     # kite_app = kite_connect.KiteApp(enc_token)
     # print(kite_app.profile())
