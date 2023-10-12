@@ -3,7 +3,7 @@ import pyotp
 
 
 def get_ltp_from_redis(instrument_or_symbol):
-    pass
+    return 16000
 
 def merge_common_to_symbols(input_with_common: list[dict]):
     output_without_common: dict = {}
