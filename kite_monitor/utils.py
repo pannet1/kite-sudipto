@@ -1,9 +1,24 @@
 import yaml
 import pyotp
-
+from io import BytesIO
+import requests 
+import pandas as pd
 
 def get_ltp_from_redis(instrument_or_symbol):
     return 16000
+
+def get_atm(diff: str, ltp) -> int:
+    current_strike = ltp - (ltp % diff)
+    next_higher_strike = current_strike + diff
+    if ltp - current_strike < next_higher_strike - ltp:
+        return int(current_strike)
+    return int(next_higher_strike)
+
+def get_instrument_details() -> pd.DataFrame:
+    url = 'https://api.kite.trade/instruments'
+    r = requests.get(url, allow_redirects=True)
+    # open('instruments.csv', 'wb').write(r.content)
+    return pd.read_csv(BytesIO(r.content))
 
 def merge_common_to_symbols(input_with_common: list[dict]):
     output_without_common: dict = {}
