@@ -1,5 +1,6 @@
 
 import utils
+import re
 import pprint
 from playwright.sync_api import Playwright, sync_playwright
 import pandas as pd
@@ -7,11 +8,11 @@ import pandas as pd
 kite_chart_url = 'https://kite.zerodha.com/chart/web/ciq/{segment}/{option_name}/{instrument_token}?theme=dark'
 
 
-def run(playwright: Playwright,  credentials, symbol_details) -> None:
+def run(playwright: Playwright,  credentials, symbol_details):
     username = credentials.get('username')
     password = credentials.get('password')
-    t_otp = credentials.get('totp')
-    browser = playwright.chromium.launch(headless=False)
+    t_otp = credentials.get('time_based_otp_key')
+    browser = playwright.chromium.launch(headless=True)
     context = browser.new_context()
     page = context.new_page()
     page.goto("https://kite.zerodha.com/?next=%2Fdashboard")
@@ -22,10 +23,10 @@ def run(playwright: Playwright,  credentials, symbol_details) -> None:
     page.get_by_role("button", name="Login").click()
     otp = utils.get_otp(t_otp) 
     page.get_by_placeholder("••••••").fill(otp)
-    #  Commented to improve TAT
-    # page.wait_for_load_state("networkidle")
-    # page.get_by_role("button", name="I understand").click()
-    for url in symbol_details.values():
+    page.wait_for_load_state("networkidle")
+    page.get_by_role("button", name="I understand").click()
+    data_frame_details = {}
+    for symbol, url in symbol_details.items():
         page3 = context.new_page()
         page3.goto(url)
         page3.wait_for_load_state("networkidle")
@@ -34,12 +35,14 @@ def run(playwright: Playwright,  credentials, symbol_details) -> None:
         with page3.expect_download() as download_info:
             page3.frame_locator("#chart-iframe").get_by_role("button", name="Download").click()
             download1 = download_info.value
-            print(pd.read_csv(f"{download1.path()}").head(1))
+            # download1.save_as(download1.suggested_filename)
+            # print(pd.read_csv(f"{download1.path()}").head(5))
+            k = re.sub(r'(\d+)(?=CE|PE)', '', symbol)
+            data_frame_details[k] = pd.read_csv(f"{download1.path()}")
         page3.close()
-
-
     context.close()
     browser.close()
+    return data_frame_details
 
 def get_instrument_token(option_name, df):
     tokens = df[df['tradingsymbol']== option_name ]['instrument_token'].to_list()
@@ -74,7 +77,39 @@ if __name__ == "__main__":
     
     pprint.pprint(symbol_details)
     with sync_playwright() as playwright:
-        run(playwright, credentials, symbol_details)
+        data_frame_details = run(playwright, credentials, symbol_details)
+        # TODO: maheswaran.palaniselvan: Below lines can be put in a diff function
+        checked_values = []
+        for symbol, df in data_frame_details.items():
+            if symbol in checked_values:
+                continue
+            checked_values.append(symbol)
+            if "CE" in symbol:
+                opposite_value = symbol.replace("CE", "PE")
+                # CE[-3] < PE[-3] and CE[-2] > PE[-2]
+                neg_3_ce_value = data_frame_details[symbol]['close'].iloc[-3]
+                neg_2_ce_value = data_frame_details[symbol]['close'].iloc[-2]
+                neg_3_pe_value = data_frame_details[opposite_value]['close'].iloc[-3]
+                neg_2_pe_value = data_frame_details[opposite_value]['close'].iloc[-2]
+                if neg_3_ce_value < neg_3_pe_value and neg_2_ce_value > neg_2_pe_value:
+                    print(f"CE>PE(Crossing) is achieved")
+                
+            else:
+                opposite_value = symbol.replace("PE", "CE")
+                # PE[-3] < CE[-3] and PE[-2] > CE[-2]
+                neg_3_pe_value = data_frame_details[symbol]['close'].iloc[-3]
+                neg_2_pe_value = data_frame_details[symbol]['close'].iloc[-2]
+                neg_3_ce_value = data_frame_details[opposite_value]['close'].iloc[-3]
+                neg_2_ce_value = data_frame_details[opposite_value]['close'].iloc[-2]
+                if neg_3_pe_value < neg_3_ce_value and neg_2_pe_value > neg_2_ce_value:
+                    print(f"PE>CE(Crossing) is achieved")
+            
+            
+            checked_values.append(opposite_value)
+            
+        
+
+
     # otp: str = utils.get_otp(t_otp)
     # print(otp)
     # enc_token = kite_connect.get_enctoken(username, password, otp)
