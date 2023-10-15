@@ -33,7 +33,6 @@ def coin_option_names(symbol_details_from_config, instrument_details):
         symbol = list(details.keys())[0]  # Get the symbol from the dictionary
         if symbol != "common":
             details = details[symbol]  # Extract details for the symbol
-            print(details)
             ltp = utils.get_ltp_from_redis(details['underlying'])
             atm = utils.get_atm(details['diff'], ltp)
 
@@ -63,7 +62,7 @@ def download_playwright(dct_option: dict) -> DataFrame:
         if the option name is supplied this returns the
         dataframe. we want to reuse this later for exits
     """
-    pass
+    pprint(dct_option)
 
 
 def generate_signal_fm_df(df_ce: DataFrame, df_pe: DataFrame) -> str:
@@ -112,15 +111,15 @@ while True:
         # need to get it through kiteweb, no redis
         symbol_details = coin_option_names(
             symbol_details_from_config, instrument_details)
-        # TODO: this is mostly incorrect, adjust accordingly
-        print(symbol_details)
+        symbol_details = [symbol_details[1]]
+        pprint(symbol_details)
         for symbol in symbol_details:
-            pprint(symbol)
             for k, v in symbol.items():
+                print(f"{k} {v}")
                 # we download df for call first
-                df_ce = download_playwright(v["ce"])
+                df_ce = download_playwright(v["ce_url"])
                 # then for put
-                df_pe = download_playwright(v["pe"])
+                df_pe = download_playwright(v["pe_url"])
                 # compare both and see if there is a signal
                 str_symbol = generate_signal_fm_df(df_ce, df_pe)
                 if str_symbol:
