@@ -1,9 +1,8 @@
-from playwright.sync_api import Playwright, sync_playwright, expect
+from playwright.sync_api import Playwright, sync_playwright
 import pandas as pd
 import pyotp
 import time
 import yaml
-username = "CP4842"
 
 
 def get_config_from_yaml(input_file: str) -> dict:
