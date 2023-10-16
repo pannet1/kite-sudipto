@@ -33,8 +33,6 @@ def coin_option_names(symbol_details_from_config, instrument_details):
         symbol = list(details.keys())[0]  # Get the symbol from the dictionary
         if symbol != "common":
             details = details[symbol]  # Extract details for the symbol
-            ltp = utils.get_ltp_from_redis(details['underlying'])
-            atm = utils.get_atm(details['diff'], ltp)
 
             val = atm + details['ce']
             option_name = symbol + details['expiry'] + str(val) + 'CE'
