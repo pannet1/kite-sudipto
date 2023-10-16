@@ -7,7 +7,7 @@ symbols:
   - common:
       multiplier: 1
   - BANKNIFTY:
-      underlying: 'NSE:BANKNIFTY'
+      underlying: 'NSE:NIFTY BANK'
       ce: -500
       pe: 500
       diff: 100
