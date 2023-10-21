@@ -117,9 +117,36 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame) -> str:
     neg_2_pe_value = df_pe['Close'].iloc[-2]
     if neg_3_ce_value < neg_3_pe_value and neg_2_ce_value > neg_2_pe_value:
         print(f"CE>PE(Crossing) is achieved")
+        return df_ce
     elif neg_3_pe_value < neg_3_ce_value and neg_2_pe_value > neg_2_ce_value:
         print(f"PE>CE(Crossing) is achieved")
-    pass
+        return df_pe
+    return pd.DataFrame()
+    
+
+def is_other_conditions(df):
+"""
+Index(['Date', 'Open', 'High', 'Low', 'Close', 'Result ‌W Acc Dist‌ (n)',
+       'MA ‌ma‌ (9,Result ‌W Acc Dist‌ (n),ma,0)', 'MACD ‌macd‌ (5,35,9)',
+       'Signal ‌macd‌ (5,35,9)', '‌macd‌ (5,35,9)_hist', 'OI',
+       'MA ‌ma‌ (20,OI,ma,0)'],
+"""
+    df.reset_index(inplace=True)
+    # macd fast is having short period >
+    # macd slow is having long period with bigger number
+    if( 
+        df.iloc[8] > df.iloc[35] and 
+        # acc dist > 20 MA 
+        df.iloc[4] > df.iloc[5] and
+        # open interest < 20 Sma 
+        df.iloc[23] < df.iloc[25]
+        ):
+        
+      return df
+
+    return pd.DataFrame()
+    
+    
 
 
 def update_order_params_with_config(dct_signal: dict) -> dict:
@@ -155,7 +182,15 @@ def place_orders(signal: dict) -> dict:
         variety="regular", **args)
 
 
-return signal
+    return signal
+
+def check_indicator_exit(df):
+    """
+      MACD opposite of buy condition 
+      i.e MACD fast < MACD slow
+      or ltp < ATR indicator
+    """
+        pass
 
 
 """
@@ -197,16 +232,24 @@ while True:
         for symbol, details in updated_configuration_details.items():
             df_ce = download_playwright(details["ce_url"], context)
             df_pe = download_playwright(details["pe_url"], context)
-            str_symbol = generate_signal_fm_df(df_ce, df_pe)
-        break
-       # if there is signal key in dct_options
-#         if "signal" in dct_options:
-#             dct_params = update_order_params_fm_config(dct_signal)
-#             dct_params = place_orders(dct_params)
-#             ## we may not needs this if we use a single dictionary for
-#             all purpose and hence could while loop with that
-#             position = True
-#     else:
+            df = generate_signal_fm_df(df_ce, df_pe)
+            if df.index>0:
+                df  = is_other_conditions(df)
+                if df.index>0:
+                    pass
+                    position = True
+                    # trigger buy order for inst_name
+                    # if there is signal key in dct_options
+                    break
+    else:
+        df = download_playwright(details, context)
+        df = check_indicator_exit(df)
+        if df.index>0:
+            # trigger a sell order for position
+            position = False
+        
+
+
 #         # since we know that the position is True
 #         # we have he dct_params, use it to
 #         df_exit = download_playwright(dct_params['signal'])
