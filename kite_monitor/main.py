@@ -1,6 +1,5 @@
 import pandas as pd
 import utils
-import utils_playwright
 from playwright.sync_api import sync_playwright
 import kite_connect
 import sys
