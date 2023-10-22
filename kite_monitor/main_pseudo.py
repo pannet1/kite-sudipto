@@ -4,6 +4,7 @@ import utils_playwright
 from playwright.sync_api import sync_playwright
 import _kite_connect
 import sys
+import traceback
 
 kite_chart_url = 'https://kite.zerodha.com/chart/web/ciq/NFO-OPT/{option_name}/{instrument_token}?theme=dark'
 
@@ -71,17 +72,6 @@ def coin_option_names(symbol_details_from_config, instrument_details, dct_ltp):
     return symbol_details_from_config
 
 
-def options_from_ltp(dct_atm: dict) -> dict:
-    """
-        each symbol key from config now will have
-        a pair of options. please note that we should
-        not simply replace the option name like PE
-        instead of CE
-        {"BANKNIFTY": ["BANKNIFTY23OCT42800CE", "BANKNIFTY23OCT43200PE"], ..}
-    """
-    pass
-
-
 def download_playwright(url: str, context) -> pd.DataFrame:
     """
         if the option name is supplied this returns the
@@ -93,11 +83,19 @@ def download_playwright(url: str, context) -> pd.DataFrame:
     page3.frame_locator(
         "#chart-iframe").locator(".ciq-DT > span").first.click()
     page3.wait_for_load_state("networkidle")
+    try:
+        page3.frame_locator("#chart-iframe").get_by_role("button", name="+ Additional columns").is_visible(timeout=100)
+        page3.frame_locator("#chart-iframe").get_by_role("button", name="+ Additional columns").click()
+    except:
+        traceback.print_exc()
+        
     with page3.expect_download() as download_info:
         page3.frame_locator(
             "#chart-iframe").get_by_role("button", name="Download").click()
         download1 = download_info.value
         df = pd.read_csv(f"{download1.path()}")
+        # url.split("/")[-2]
+        df["symbol"] = url.split("/")[-2]
     page3.close()
     return df
 
@@ -108,13 +106,15 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame) -> str:
        a dictionary can be built from the caller of this function.
        {"BANKNIFTY": {"signal": "BANKNIFTY23OCT42800CE"}}
     """
-    print(df_ce.head())
-    print(df_pe.head())
-    print(df_ce.columns)
+    # print(df_ce.head())
+    # print(df_pe.head())
+    # print(df_ce.columns)
     neg_3_ce_value = df_ce['Close'].iloc[-3]
     neg_2_ce_value = df_ce['Close'].iloc[-2]
     neg_3_pe_value = df_pe['Close'].iloc[-3]
     neg_2_pe_value = df_pe['Close'].iloc[-2]
+    print(neg_3_ce_value, neg_2_ce_value, neg_3_pe_value, neg_2_pe_value)
+    print(df_ce.iloc[-3, 4], df_ce.iloc[-2, 4], df_pe.iloc[-3, 4], df_pe.iloc[-2, 4], )
     if neg_3_ce_value < neg_3_pe_value and neg_2_ce_value > neg_2_pe_value:
         print(f"CE>PE(Crossing) is achieved")
         return df_ce
@@ -125,72 +125,106 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame) -> str:
     
 
 def is_other_conditions(df):
-"""
-Index(['Date', 'Open', 'High', 'Low', 'Close', 'Result ‌W Acc Dist‌ (n)',
-       'MA ‌ma‌ (9,Result ‌W Acc Dist‌ (n),ma,0)', 'MACD ‌macd‌ (5,35,9)',
-       'Signal ‌macd‌ (5,35,9)', '‌macd‌ (5,35,9)_hist', 'OI',
-       'MA ‌ma‌ (20,OI,ma,0)'],
-"""
-    df.reset_index(inplace=True)
+    """
+    [
+        'Date',                                     # 0
+        'Open',                                     # 1                
+        'High',                                     # 2
+        'Low',                                      # 3
+        'Close',                                    # 4
+        '% Change',                                 # 5
+        '% Change vs Average',                      # 6
+        'Volume',                                   # 7
+        'Result ‌W Acc Dist‌ (n)',                    # 8
+        'MA ‌ma‌ (57,Result ‌W Acc Dist‌ (n),ma,0)',    # 9
+        'MACD ‌macd‌ (7,21,9)',                       # 10
+        'Signal ‌macd‌ (7,21,9)',                     # 11
+        '‌macd‌ (7,21,9)_hist',                       # 12 
+        'OI',                                       # 13
+        'MA ‌ma‌ (20,OI,ema,0)',                      # 14    
+        'All Stops ‌ATR Trailing Stop‌ (8,2,points,n)',# 15
+        'symbol'                                    # 16    
+    ]
+    """
+    # df.reset_index(inplace=True)
     # macd fast is having short period >
     # macd slow is having long period with bigger number
+    macd_fast_column_number = 10 # column number starts from 0
+    macd_slow_column_number = 11 #
+    acc_dist_column_number = 6
+    ma_20_column_number = 7
+    open_interest_column_number = 8
+    sma_20_column_number = 9
     if( 
-        df.iloc[8] > df.iloc[35] and 
+        df.iloc[-2, macd_fast_column_number] >= df.iloc[-2, macd_slow_column_number] and 
         # acc dist > 20 MA 
-        df.iloc[4] > df.iloc[5] and
+        df.iloc[-2, acc_dist_column_number] > df.iloc[-2, ma_20_column_number] and
         # open interest < 20 Sma 
-        df.iloc[23] < df.iloc[25]
+        df.iloc[-2, open_interest_column_number] < df.iloc[-2, sma_20_column_number]
         ):
-        
       return df
-
     return pd.DataFrame()
-    
-    
 
 
-def update_order_params_with_config(dct_signal: dict) -> dict:
-    """
-        using the base key, we need to update order update
-        params from config file, so we can generate order
-    """
-    pass
-
-
-def place_orders(signal: dict) -> dict:
+def place_orders(config_details: dict, symbol: str,  action="B") -> dict:
     """
     NIFTY': {'underlying': 'NSE:NIFTY 50', 'expiry': '23OCT', 
     'lotsize': 25, 'stoploss': 10, 'segment': 'NFO-OPT', 'multiplier': 1}}"
     """
     args = dict(
         exchange="NFO",
-        tradingsymbol=signal['tradingsymbol'],
+        tradingsymbol=symbol,
         transaction_type="BUY",
-        quantity=signal['lotsize'] * signal['multiplier'],
+        quantity=config_details['lotsize'] * config_details['multiplier'],
         product="MIS",
         order_type="MARKET",
         price=None,
         validity=None,
     )
-    signal['entry_order_id'] = kite_client.order_place(
+    
+    # Sell order
+    if action == "S":
+        dct_ltp = ltp_for_underlying([details['underlying']], kite_client)
+        if dct_ltp.values():
+            ltp = next(iter(dct_ltp.values()))
+            args['transaction_type'] = "SELL"
+            args['order_type'] == "SL-M"
+            args['trigger_price'] = ltp - details['stoploss']
+            _ = kite_client.order_place(
+                variety="regular", **args)
+            return 
+    
+    # Buy order
+    _ = kite_client.order_place(
         variety="regular", **args)
 
-    args['transaction_type'] = "SELL"
-    args['order_type'] == "SL-M"
-    args['trigger_price'] = 0  # ltp - signal['stoploss']
-    signal['exit_order_id'] = kite_client.order_place(
-        variety="regular", **args)
+    return
 
 
-    return signal
-
-def check_indicator_exit(df):
+def check_indicator_exit(df, symbol_details):
     """
       MACD opposite of buy condition 
       i.e MACD fast < MACD slow
       or ltp < ATR indicator
     """
-        pass
+    macd_fast_column_number = 0
+    macd_slow_column_number = 1
+    atr_indicator_column_number = 2
+    symbol_name = df['symbol'].unique()[0]
+    ltp = 999999999999
+    for symbol, details in symbol_details.items():
+        if symbol_name.startswith(symbol):
+            dct_ltp = ltp_for_underlying([details['underlying']], kite_client)
+            if dct_ltp.values():
+                ltp = next(iter(dct_ltp.values()))
+                break
+
+    if (
+        df.iloc[-2, macd_fast_column_number] < df.iloc[-2, macd_slow_column_number] or
+        ltp < df.iloc[-2, atr_indicator_column_number]
+    ):
+        return df
+    return pd.DataFrame()
 
 
 """
@@ -204,7 +238,7 @@ configuration_details: list[dict] = utils.get_config_from_yaml()
 
 # Playwright operations
 playwright = sync_playwright().start()
-browser = playwright.chromium.launch()
+browser = playwright.chromium.launch(headless=False)
 context = browser.new_context()
 
 # Other operations
@@ -221,10 +255,12 @@ symbol_details: dict = utils.merge_common_to_symbols(
 print(symbol_details)
 dct_underlying: list = underlying_from_config(symbol_details)
 print(dct_underlying)
-position = False
+# position = False
+order_placed_instrument = None
 instrument_details = utils.get_instrument_details()
 while True:
-    if not position:
+    # if not position:
+    if not order_placed_instrument:
         dct_ltp = ltp_for_underlying(dct_underlying, kite_client)
         updated_configuration_details = coin_option_names(
             symbol_details, instrument_details, dct_ltp)
@@ -232,21 +268,33 @@ while True:
         for symbol, details in updated_configuration_details.items():
             df_ce = download_playwright(details["ce_url"], context)
             df_pe = download_playwright(details["pe_url"], context)
-            df = generate_signal_fm_df(df_ce, df_pe)
-            if df.index>0:
-                df  = is_other_conditions(df)
-                if df.index>0:
-                    pass
-                    position = True
+            df: pd.DataFrame() = generate_signal_fm_df(df_ce, df_pe)
+            if df.index.size > 0:
+                df: pd.DataFrame()  = is_other_conditions(df)
+                if df.index.size > 0:
+                    # position = True
+                    order_placed_instrument = df['symbol'].unique()[0]
+                    for symbol, details in symbol_details.items():
+                        if order_placed_instrument.startswith(symbol):
+                            place_orders(details, order_placed_instrument, action="B")
                     # trigger buy order for inst_name
                     # if there is signal key in dct_options
                     break
     else:
-        df = download_playwright(details, context)
-        df = check_indicator_exit(df)
-        if df.index>0:
+        instrument_token = get_instrument_token(
+            order_placed_instrument, instrument_details)
+        url_to_download = kite_chart_url.format(
+            option_name=order_placed_instrument, instrument_token=instrument_token)
+        df = download_playwright(url_to_download, context)
+        df = check_indicator_exit(df, symbol_details)
+        if df.index.size > 0:
             # trigger a sell order for position
-            position = False
+            # position = False
+            order_placed_instrument = df['symbol'].unique()[0]
+            for symbol, details in symbol_details.items():
+                if order_placed_instrument.startswith(symbol):
+                    place_orders(details, order_placed_instrument, action="S")
+            order_placed_instrument = None
         
 
 
