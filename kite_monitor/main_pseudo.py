@@ -238,7 +238,7 @@ configuration_details: list[dict] = utils.get_config_from_yaml()
 
 # Playwright operations
 playwright = sync_playwright().start()
-browser = playwright.chromium.launch(headless=False)
+browser = playwright.chromium.launch(headless=True)
 context = browser.new_context()
 
 # Other operations
