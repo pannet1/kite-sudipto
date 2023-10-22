@@ -28,6 +28,7 @@ def login_to_kite_web_using_playwright(credentials_from_config, context) -> tupl
     enc_token = next(iter(enc_token), None)
     return enc_token
 
+
 def underlying_from_config(symbol_details_from_config: list[dict]) -> list:
     """
         config file should return underlying
@@ -133,7 +134,7 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame) -> str:
     neg_3_pe_value = df_pe['Close'].iloc[-3]
     neg_2_pe_value = df_pe['Close'].iloc[-2]
     print(neg_3_ce_value, neg_2_ce_value, neg_3_pe_value, neg_2_pe_value)
-    print(df_ce.iloc[-3, 4], df_ce.iloc[-2, 4], df_pe.iloc[-3, 4], df_pe.iloc[-2, 4], )
+    # print(df_ce.iloc[-3, 4], df_ce.iloc[-2, 4], df_pe.iloc[-3, 4], df_pe.iloc[-2, 4], )
     if neg_3_ce_value < neg_3_pe_value and neg_2_ce_value > neg_2_pe_value:
         print(f"CE>PE(Crossing) is achieved")
         return df_ce
@@ -181,6 +182,11 @@ def is_other_conditions(df):
         # open interest < 20 Sma 
         df.iloc[-2, open_interest_column_number] < df.iloc[-2, sma_20_column_number]
         ):
+      print(df.iloc[-2, macd_fast_column_number], df.iloc[-2, macd_slow_column_number],
+            df.iloc[-2, acc_dist_column_number], df.iloc[-2, ma_20_column_number], 
+            df.iloc[-2, open_interest_column_number], df.iloc[-2, sma_20_column_number]
+            )
+      print("Signal conditions are met")
       return df
     return pd.DataFrame()
 
@@ -190,8 +196,8 @@ def place_orders(config_details: dict, symbol: str,  action="B") -> dict:
     NIFTY': {'underlying': 'NSE:NIFTY 50', 'expiry': '23OCT', 
     'lotsize': 25, 'stoploss': 10, 'segment': 'NFO-OPT', 'multiplier': 1}}"
     """
+    print(f"{action} order placement triggered")
     if config_details["live"] == 0:
-        print("Not live")
         return
     args = dict(
         exchange="NFO",
