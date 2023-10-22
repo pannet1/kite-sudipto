@@ -269,7 +269,7 @@ browser = playwright.chromium.launch(headless=True)
 context = browser.new_context()
 
 # Other operations
-enc_token = utils_playwright.login_to_kite_web_using_playwright(
+enc_token = login_to_kite_web_using_playwright(
     configuration_details["credentials"], context)
 if not enc_token:
     print("enc_token is missing. Please check")
