@@ -190,6 +190,9 @@ def place_orders(config_details: dict, symbol: str,  action="B") -> dict:
     NIFTY': {'underlying': 'NSE:NIFTY 50', 'expiry': '23OCT', 
     'lotsize': 25, 'stoploss': 10, 'segment': 'NFO-OPT', 'multiplier': 1}}"
     """
+    if config_details["live"] == 0:
+        print("Not live")
+        return
     args = dict(
         exchange="NFO",
         tradingsymbol=symbol,
