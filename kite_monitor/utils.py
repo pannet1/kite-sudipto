@@ -4,11 +4,6 @@ from io import BytesIO
 import requests 
 import pandas as pd
 
-def get_ltp_from_redis(instrument_or_symbol):
-    print(instrument_or_symbol)
-    if instrument_or_symbol.split(":")[-1] == "BANKNIFTY":
-        return 39000
-    return 18000
 
 def get_atm(diff: str, ltp) -> int:
     current_strike = ltp - (ltp % diff)
