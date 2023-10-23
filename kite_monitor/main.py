@@ -21,7 +21,7 @@ def login_to_kite_web_using_playwright(credentials_from_config, context) -> tupl
     page.get_by_role("button", name="Login").click()
     otp = utils.get_otp(t_otp)
     page.get_by_placeholder("••••••").fill(otp)
-    page.wait_for_load_state("networkidle")
+    page.wait_for_load_state()
     page.get_by_role("button", name="I understand").click()
     enc_token = [cookie["value"] for cookie in context.cookies() if cookie["name"] == "enctoken"]
     enc_token = next(iter(enc_token), None)
@@ -50,7 +50,7 @@ def ltp_for_underlying(lst_underlying: list, kite_client: kite_connect.KiteApp) 
         tmp = kite_client.ltp(underlying).get(underlying)
         if tmp:
             output_dict[underlying] = tmp.get("last_price")
-    print(output_dict)
+    # print(output_dict)
     return output_dict
 
 
@@ -63,7 +63,7 @@ def get_instrument_token(option_name, df):
 def coin_option_names(symbol_details_from_config, instrument_details, dct_ltp):
     # delete first element common
     for symbol, details in symbol_details_from_config.items():
-        print(details)
+        # print(details)
         # symbol = list(details.keys())[0]  # Get the symbol from the dictionary
         # if symbol != "common":
         # details = details[symbol]  # Extract details for the symbol
@@ -98,15 +98,16 @@ def download_playwright(url: str, context) -> pd.DataFrame:
     """
     page3 = context.new_page()
     page3.goto(url)
-    page3.wait_for_load_state("networkidle")
+    page3.wait_for_load_state()
     page3.frame_locator(
         "#chart-iframe").locator(".ciq-DT > span").first.click()
-    page3.wait_for_load_state("networkidle")
+    page3.wait_for_load_state()
     try:
         page3.frame_locator("#chart-iframe").get_by_role("button", name="+ Additional columns").is_visible(timeout=100)
         page3.frame_locator("#chart-iframe").get_by_role("button", name="+ Additional columns").click()
     except:
-        traceback.print_exc()
+        # traceback.print_exc()
+        pass
         
     with page3.expect_download() as download_info:
         page3.frame_locator(
@@ -132,7 +133,12 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame) -> str:
     neg_2_ce_value = df_ce['Close'].iloc[-2]
     neg_3_pe_value = df_pe['Close'].iloc[-3]
     neg_2_pe_value = df_pe['Close'].iloc[-2]
-    print(neg_3_ce_value, neg_2_ce_value, neg_3_pe_value, neg_2_pe_value)
+    print("==============")
+    print(df_ce.columns.to_list())
+    print(df_ce.iloc[-3].to_list())
+    print(df_pe.iloc[-3].to_list())
+    print("==============")
+    # print(neg_3_ce_value, neg_2_ce_value, neg_3_pe_value, neg_2_pe_value)
     # print(df_ce.iloc[-3, 4], df_ce.iloc[-2, 4], df_pe.iloc[-3, 4], df_pe.iloc[-2, 4], )
     if neg_3_ce_value < neg_3_pe_value and neg_2_ce_value > neg_2_pe_value:
         print(f"CE>PE(Crossing) is achieved")
@@ -279,9 +285,9 @@ kite_client = kite_connect.KiteApp(enc_token)
 symbol_details_with_common: list[dict] = configuration_details["symbols"]
 symbol_details: dict = utils.merge_common_to_symbols(
     symbol_details_with_common)
-print(symbol_details)
+# print(symbol_details)
 dct_underlying: list = underlying_from_config(symbol_details)
-print(dct_underlying)
+# print(dct_underlying)
 # position = False
 order_placed_instrument = None
 instrument_details = utils.get_instrument_details()
@@ -291,7 +297,7 @@ while True:
         dct_ltp = ltp_for_underlying(dct_underlying, kite_client)
         updated_configuration_details = coin_option_names(
             symbol_details, instrument_details, dct_ltp)
-        print(updated_configuration_details)
+        # print(updated_configuration_details)
         for symbol, details in updated_configuration_details.items():
             df_ce = download_playwright(details["ce_url"], context)
             df_pe = download_playwright(details["pe_url"], context)
