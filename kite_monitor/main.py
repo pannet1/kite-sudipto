@@ -38,7 +38,7 @@ def login_to_kite_web_using_playwright(credentials_from_config, context) -> tupl
     page.get_by_role("button", name="Login").click()
     otp = utils.get_otp(t_otp)
     page.get_by_placeholder("••••••").fill(otp)
-    page.wait_for_load_state()
+    page.wait_for_load_state("networkidle")
     page.get_by_role("button", name="I understand").click()
     enc_token = [cookie["value"] for cookie in context.cookies() if cookie["name"] == "enctoken"]
     enc_token = next(iter(enc_token), None)
@@ -115,10 +115,10 @@ def download_playwright(url: str, context) -> pd.DataFrame:
     """
     page3 = context.new_page()
     page3.goto(url)
-    page3.wait_for_load_state()
+    page3.wait_for_load_state("networkidle")
     page3.frame_locator(
         "#chart-iframe").locator(".ciq-DT > span").first.click()
-    page3.wait_for_load_state()
+    page3.wait_for_load_state("networkidle")
     try:
         page3.frame_locator("#chart-iframe").get_by_role("button", name="+ Additional columns").is_visible(timeout=100)
         page3.frame_locator("#chart-iframe").get_by_role("button", name="+ Additional columns").click()
