@@ -4,6 +4,24 @@ from playwright.sync_api import sync_playwright
 import kite_connect
 import sys
 
+try:
+    from tabulate import tabulate
+except ImportError:
+    # Module is not installed, attempt to install it
+    import subprocess
+    import sys
+
+    # Replace 'your_module' with the actual module name you want to install
+    module_name = "tabulate"
+
+    # Use 'pip' to install the module
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", module_name])
+    except subprocess.CalledProcessError:
+        print(f"Failed to install {module_name}. Please install it manually.")
+    else:
+        # Module installed successfully, now you can import it
+        from tabulate import tabulate
 kite_chart_url = 'https://kite.zerodha.com/chart/web/ciq/NFO-OPT/{option_name}/{instrument_token}?theme=dark'
 
 
@@ -131,10 +149,13 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame) -> str:
     neg_2_ce_value = df_ce['Close'].iloc[-2]
     neg_3_pe_value = df_pe['Close'].iloc[-3]
     neg_2_pe_value = df_pe['Close'].iloc[-2]
+    print_data = [
+        ["Time", "CE", "CE Close", "PE", "PE Close"],
+        [df_ce['Date'].iloc[-3], df_ce['symbol'].iloc[-3], df_ce['Close'].iloc[-3], df_pe['symbol'].iloc[-3], df_pe['Close'].iloc[-3]],
+        [df_ce['Date'].iloc[-2], df_ce['symbol'].iloc[-2], df_ce['Close'].iloc[-2], df_pe['symbol'].iloc[-2], df_pe['Close'].iloc[-2]],
+    ]
     print("==============")
-    print(df_ce.columns.to_list())
-    print(df_ce.iloc[-3].to_list())
-    print(df_pe.iloc[-3].to_list())
+    print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
     print("==============")
     # print(neg_3_ce_value, neg_2_ce_value, neg_3_pe_value, neg_2_pe_value)
     # print(df_ce.iloc[-3, 4], df_ce.iloc[-2, 4], df_pe.iloc[-3, 4], df_pe.iloc[-2, 4], )
@@ -178,6 +199,15 @@ def is_other_conditions(df):
     ma_20_column_number = 9
     open_interest_column_number = 13
     sma_20_column_number = 14
+    print_data = [
+        ["Time", "Symbol", "macd_fast", "macd_slow", "acc_dis", "ma_20", "oi", "sma_20"],
+        [df['Date'].iloc[-2], df['symbol'].iloc[-2], df.iloc[-2, macd_fast_column_number], 
+         df.iloc[-2, macd_slow_column_number], df.iloc[-2, acc_dist_column_number], df.iloc[-2, ma_20_column_number],
+         df.iloc[-2, open_interest_column_number], df.iloc[-2, sma_20_column_number]],
+    ]
+    print("==============")
+    print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
+    print("==============")
     if( 
         df.iloc[-2, macd_fast_column_number] >= df.iloc[-2, macd_slow_column_number] and 
         # acc dist > 20 MA 
@@ -185,10 +215,10 @@ def is_other_conditions(df):
         # open interest < 20 Sma 
         df.iloc[-2, open_interest_column_number] < df.iloc[-2, sma_20_column_number]
         ):
-      print(df.iloc[-2, macd_fast_column_number], df.iloc[-2, macd_slow_column_number],
-            df.iloc[-2, acc_dist_column_number], df.iloc[-2, ma_20_column_number], 
-            df.iloc[-2, open_interest_column_number], df.iloc[-2, sma_20_column_number]
-            )
+    #   print(df.iloc[-2, macd_fast_column_number], df.iloc[-2, macd_slow_column_number],
+    #         df.iloc[-2, acc_dist_column_number], df.iloc[-2, ma_20_column_number], 
+    #         df.iloc[-2, open_interest_column_number], df.iloc[-2, sma_20_column_number]
+    #         )
       print("Signal conditions are met")
       return df
     return pd.DataFrame()
