@@ -3,7 +3,6 @@ import utils
 from playwright.sync_api import sync_playwright
 import kite_connect
 import sys
-import traceback
 
 kite_chart_url = 'https://kite.zerodha.com/chart/web/ciq/NFO-OPT/{option_name}/{instrument_token}?theme=dark'
 
@@ -106,7 +105,6 @@ def download_playwright(url: str, context) -> pd.DataFrame:
         page3.frame_locator("#chart-iframe").get_by_role("button", name="+ Additional columns").is_visible(timeout=100)
         page3.frame_locator("#chart-iframe").get_by_role("button", name="+ Additional columns").click()
     except:
-        # traceback.print_exc()
         pass
         
     with page3.expect_download() as download_info:
@@ -176,10 +174,10 @@ def is_other_conditions(df):
     # macd slow is having long period with bigger number
     macd_fast_column_number = 10 # column number starts from 0
     macd_slow_column_number = 11 #
-    acc_dist_column_number = 6
-    ma_20_column_number = 7
-    open_interest_column_number = 8
-    sma_20_column_number = 9
+    acc_dist_column_number = 8
+    ma_20_column_number = 9
+    open_interest_column_number = 13
+    sma_20_column_number = 14
     if( 
         df.iloc[-2, macd_fast_column_number] >= df.iloc[-2, macd_slow_column_number] and 
         # acc dist > 20 MA 
@@ -240,9 +238,9 @@ def check_indicator_exit(df, symbol_details):
       i.e MACD fast < MACD slow
       or ltp < ATR indicator
     """
-    macd_fast_column_number = 0
-    macd_slow_column_number = 1
-    atr_indicator_column_number = 2
+    macd_fast_column_number = 10
+    macd_slow_column_number = 11
+    atr_indicator_column_number = 15
     symbol_name = df['symbol'].unique()[0]
     ltp = 999999999999
     for symbol, details in symbol_details.items():
