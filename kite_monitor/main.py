@@ -251,12 +251,12 @@ def place_orders(config_details: dict, symbol: str,  action="B") -> dict:
             args['transaction_type'] = "SELL"
             args['order_type'] == "SL-M"
             args['trigger_price'] = ltp - details['stoploss']
-            _ = kite_client.order_place(
+            _ = kite_client.place_order(
                 variety="regular", **args)
             return 
     
     # Buy order
-    _ = kite_client.order_place(
+    _ = kite_client.place_order(
         variety="regular", **args)
 
     return
@@ -279,6 +279,14 @@ def check_indicator_exit(df, symbol_details):
             if dct_ltp.values():
                 ltp = next(iter(dct_ltp.values()))
                 break
+    
+    print_data = [
+        ["Time", "Symbol", "MACD Fast", "MACD Slow", "LTP", "ATR"],
+        [df['Date'].iloc[-2], df['symbol'].iloc[-2], df.iloc[-2, macd_fast_column_number], df.iloc[-2, macd_slow_column_number], ltp, df.iloc[-2, atr_indicator_column_number],]
+    ]
+    print("==============")
+    print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
+    print("==============")
 
     if (
         df.iloc[-2, macd_fast_column_number] < df.iloc[-2, macd_slow_column_number] or
