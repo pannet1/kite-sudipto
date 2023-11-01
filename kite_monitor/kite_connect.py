@@ -150,12 +150,12 @@ class KiteApp:
         params = locals()
         del params["self"]
         for k in list(params.keys()):
-            if params[k] is None:
+            if k != "self" and params[k] is None:
                 del params[k]
-
-        order_id = self.session.post(
-            f"{self.root_url}/orders/{variety}", data=params, headers=(self.headers)
-        ).json()["data"]["order_id"]
+        _params = {k:v for k,v in params.items() if k not in ("self", "variety")}
+        resp = self.session.post(f"{self.root_url}/orders/{variety}", data=_params, headers=(self.headers))
+        print(resp.json())
+        order_id = resp.json()["data"]["order_id"]
         return order_id
 
     def modify_order(
@@ -194,6 +194,7 @@ class KiteApp:
 
 def get_enctoken(userid: str, password: str, twofa: str) -> str:
     session = requests.Session()
+    import pyotp
     response = session.post(
         "https://kite.zerodha.com/api/login",
         data={"user_id": userid, "password": password},
@@ -202,7 +203,7 @@ def get_enctoken(userid: str, password: str, twofa: str) -> str:
         "https://kite.zerodha.com/api/twofa",
         data={
             "request_id": response.json()["data"]["request_id"],
-            "twofa_value": twofa,
+            "twofa_value": pyotp.TOTP(twofa).now(),
             "user_id": response.json()["data"]["user_id"],
         },
     )
@@ -250,9 +251,11 @@ if __name__ == "__main__":
     context = browser.new_context()
 
     # Other operations
-    enc_token = login_to_kite_web_using_playwright(
-        configuration_details["credentials"], context
-    )
+    # use playwright for enctoken
+    # enc_token = login_to_kite_web_using_playwright(
+    #     configuration_details["credentials"], context
+    # )
+    enc_token = get_enctoken(configuration_details["credentials"]["username"], configuration_details["credentials"]["password"], configuration_details["credentials"]["time_based_otp_key"])
     if not enc_token:
         print("enc_token is missing. Please check")
         SystemExit(-1)
@@ -265,14 +268,14 @@ if __name__ == "__main__":
     """
     args = dict(
         variety="regular",
-        exchange="NSE",
-        tradingsymbol="TRIDENT",
+        exchange="NFO",
+        tradingsymbol="BANKNIFTY23N0142700CE",
         transaction_type="BUY",
         quantity=1,
         product="MIS",
         order_type="MARKET",
-        price=None,
-        validity=None,
+        validity="DAY",
     )
-    kite_client.place_order(**args)
+    # print(kite_client.orders())
+    print(kite_client.place_order(**args))
 
