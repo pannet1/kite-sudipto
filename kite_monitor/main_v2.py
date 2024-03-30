@@ -92,7 +92,7 @@ def coin_option_names(symbol_details_from_config, instrument_details, dct_ltp, k
         atm = utils.get_atm(details['diff'], ltp)
 
         val = atm + details['ce']
-        option_name = symbol + details['expiry'] + str(val) + 'CE'
+        option_name = symbol + str(details['expiry']) + str(val) + 'CE'
         instrument_token = get_instrument_token(
             option_name, instrument_details)
 
@@ -105,7 +105,7 @@ def coin_option_names(symbol_details_from_config, instrument_details, dct_ltp, k
             details['call_oi'] = tmp.get("last_price")
 
         val = atm + details['pe']
-        option_name = symbol + details['expiry'] + str(val) + 'PE'
+        option_name = symbol + str(details['expiry']) + str(val) + 'PE'
         instrument_token = get_instrument_token(
             option_name, instrument_details)
 
