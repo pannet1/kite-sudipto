@@ -308,7 +308,7 @@ configuration_details: list[dict] = utils.get_config_from_yaml()
 
 # Playwright operations
 playwright = sync_playwright().start()
-browser = playwright.chromium.launch(headless=False)
+browser = playwright.chromium.launch(headless=True)
 context = browser.new_context()
 
 # Other operations
@@ -366,7 +366,7 @@ while True:
             order_placed_instrument = df['symbol'].unique()[0]
             for symbol, details in symbol_details.items():
                 if order_placed_instrument.startswith(symbol):
-                    place_orders(details, order_placed_instrument, action="S")
+                    place_orders(details, order_placed_instrument, "DUMMY", action="S")
             order_placed_instrument = None
         
 context.close()
