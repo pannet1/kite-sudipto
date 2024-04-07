@@ -160,8 +160,8 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
        a dictionary can be built from the caller of this function.
        {"BANKNIFTY": {"signal": "BANKNIFTY23OCT42800CE"}}
     """
-    call_oi = details.get("call_oi", 0)
-    put_oi = details.get("put_oi", 0)
+    call_oi = "NA" #details.get("call_oi", 0)
+    put_oi = "NA" #details.get("put_oi", 0)
     
     print_data = [
         ["Time", "Symbol", "pe_oi", "ce_oi", "RSI(14)", "MA(10)", "ATR(14)", "MACD(7,20,1)", "MA(20, (TRIPLE EXPONENTIAL)) "],
@@ -176,8 +176,8 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
     print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
     print("=====Call Side Check - End===========")
     call_side_conditions = [
-        call_oi != 0 and put_oi != 0,
-        put_oi > call_oi,
+        # call_oi != 0 and put_oi != 0,
+        # put_oi > call_oi,
         any([
             df_ce.iloc[-2, rsi_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number], 
             df_ce.iloc[-3, rsi_14_column_number] > df_ce.iloc[-3, moving_average_10_column_number], 
@@ -208,8 +208,8 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
     print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
     print("=====Put Side Check - End===========")
     put_side_conditions = [
-        call_oi != 0 and put_oi != 0,
-        call_oi > put_oi,
+        # call_oi != 0 and put_oi != 0,
+        # call_oi > put_oi,
         any([
             df_pe.iloc[-2, rsi_14_column_number] > df_pe.iloc[-2, moving_average_10_column_number],
             df_pe.iloc[-3, rsi_14_column_number] > df_pe.iloc[-3, moving_average_10_column_number],
