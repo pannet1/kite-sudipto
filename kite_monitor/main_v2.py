@@ -3,6 +3,7 @@ import utils
 from playwright.sync_api import sync_playwright
 import kite_connect
 import sys
+import datetime
 
 try:
     from tabulate import tabulate
@@ -236,7 +237,7 @@ def place_orders(config_details: dict, symbol: str, ltp, action="B") -> dict:
     'lotsize': 25, 'stoploss': 10, 'segment': 'NFO-OPT', 'multiplier': 1}}"
     """
     mode = config_details["live"]
-    print(f"{action} order placement triggered, on {'paper' if mode==0 else 'live'} mode")
+    print(f"{action} order placement triggered at {str(datetime.datetime.now())}, on {'paper' if mode==0 else 'live'} mode")
     if mode == 0:
         return
     args = dict(
