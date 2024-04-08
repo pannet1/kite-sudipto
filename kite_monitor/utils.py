@@ -35,7 +35,7 @@ def merge_common_to_symbols(input_with_common: list[dict]):
     return output_without_common
 
 def get_config_from_yaml() -> list[dict]:
-    with open("../../../settings.yaml", "r") as yamlfile:
+    with open("../../settings.yaml", "r") as yamlfile:
         config_data =  yaml.safe_load(yamlfile)
         print(config_data)
         return config_data
