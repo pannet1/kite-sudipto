@@ -173,9 +173,9 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
         df_ce.iloc[-3, moving_average_10_column_number], df_ce.iloc[-3, atr_14_column_number], df_ce.iloc[-3, macd_7_20_1_column_number],
         df_ce.iloc[-3, moving_average_20_triple_exponential_column_number]],
     ]
-    print("=====Call Side Check - Start=========")
+    print(f"=====Call Side Check - Start - {str(datetime.datetime.now())}=========")
     print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
-    print("=====Call Side Check - End===========")
+    print(f"=====Call Side Check - End - {str(datetime.datetime.now())}===========")
     call_side_conditions = [
         # call_oi != 0 and put_oi != 0,
         # put_oi > call_oi,
@@ -205,9 +205,9 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
         df_pe.iloc[-3, moving_average_10_column_number], df_pe.iloc[-3, atr_14_column_number], df_pe.iloc[-3, macd_7_20_1_column_number],
         df_pe.iloc[-3, moving_average_20_triple_exponential_column_number]],
     ]
-    print("=====Put Side Check - Start=========")
+    print(f"=====Put Side Check - Start - {str(datetime.datetime.now())}=========")
     print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
-    print("=====Put Side Check - End===========")
+    print(f"=====Put Side Check - End - {str(datetime.datetime.now())}===========")
     put_side_conditions = [
         # call_oi != 0 and put_oi != 0,
         # call_oi > put_oi,
