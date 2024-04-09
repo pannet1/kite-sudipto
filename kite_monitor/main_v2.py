@@ -165,13 +165,17 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
     put_oi = "NA" #details.get("put_oi", 0)
     
     print_data = [
-        ["Time", "Symbol", "pe_oi", "ce_oi", "RSI(14)", "MA(10)", "ATR(14)", "MACD(7,20,1)", "MA(20, (TRIPLE EXPONENTIAL)) "],
+        ["Time", "Symbol", "pe_oi", "ce_oi", "RSI(14)", "MA(10)", "ATR(14)", "MACD(7,20,1)", "MA(20, (TRIPLE EXPONENTIAL)) ", "rsi_14 > ma_10", "atr_14 > ma_10", "macd > ma_20_triple"],
+        [df_ce['Date'].iloc[-1], df_ce['symbol'].iloc[-1], put_oi, call_oi, df_ce.iloc[-1, rsi_14_column_number], 
+        df_ce.iloc[-1, moving_average_10_column_number], df_ce.iloc[-1, atr_14_column_number], df_ce.iloc[-1, macd_7_20_1_column_number],
+        df_ce.iloc[-1, moving_average_20_triple_exponential_column_number], df_ce.iloc[-1, rsi_14_column_number] > df_ce.iloc[-1, moving_average_10_column_number], 
+        df_ce.iloc[-1, atr_14_column_number] > df_ce.iloc[-1, moving_average_10_column_number],
+        df_ce.iloc[-1, macd_7_20_1_column_number] > df_ce.iloc[-1, moving_average_20_triple_exponential_column_number]],
         [df_ce['Date'].iloc[-2], df_ce['symbol'].iloc[-2], put_oi, call_oi, df_ce.iloc[-2, rsi_14_column_number], 
         df_ce.iloc[-2, moving_average_10_column_number], df_ce.iloc[-2, atr_14_column_number], df_ce.iloc[-2, macd_7_20_1_column_number],
-        df_ce.iloc[-2, moving_average_20_triple_exponential_column_number]],
-        [df_ce['Date'].iloc[-3], df_ce['symbol'].iloc[-3], put_oi, call_oi, df_ce.iloc[-3, rsi_14_column_number], 
-        df_ce.iloc[-3, moving_average_10_column_number], df_ce.iloc[-3, atr_14_column_number], df_ce.iloc[-3, macd_7_20_1_column_number],
-        df_ce.iloc[-3, moving_average_20_triple_exponential_column_number]],
+        df_ce.iloc[-2, moving_average_20_triple_exponential_column_number], df_ce.iloc[-2, rsi_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number], 
+        df_ce.iloc[-2, atr_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number],
+        df_ce.iloc[-2, macd_7_20_1_column_number] > df_ce.iloc[-2, moving_average_20_triple_exponential_column_number]],
     ]
     print(f"=====Call Side Check - Start - {str(datetime.datetime.now())}=========")
     print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
@@ -180,30 +184,34 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
         # call_oi != 0 and put_oi != 0,
         # put_oi > call_oi,
         any([
+            df_ce.iloc[-1, rsi_14_column_number] > df_ce.iloc[-1, moving_average_10_column_number], 
             df_ce.iloc[-2, rsi_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number], 
-            df_ce.iloc[-3, rsi_14_column_number] > df_ce.iloc[-3, moving_average_10_column_number], 
             ]),
         any([
+            df_ce.iloc[-1, atr_14_column_number] > df_ce.iloc[-1, moving_average_10_column_number],
             df_ce.iloc[-2, atr_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number],
-            df_ce.iloc[-3, atr_14_column_number] > df_ce.iloc[-3, moving_average_10_column_number],
             ]),
-        df_ce.iloc[-2, macd_7_20_1_column_number] > 0,
+        df_ce.iloc[-1, macd_7_20_1_column_number] > 0,
         any([
+            df_ce.iloc[-1, macd_7_20_1_column_number] > df_ce.iloc[-1, moving_average_20_triple_exponential_column_number],
             df_ce.iloc[-2, macd_7_20_1_column_number] > df_ce.iloc[-2, moving_average_20_triple_exponential_column_number],
-            df_ce.iloc[-3, macd_7_20_1_column_number] > df_ce.iloc[-3, moving_average_20_triple_exponential_column_number],
         ])
     ]
     if all(call_side_conditions):
         # call side - bullish
         return df_ce
     print_data = [
-        ["Time", "Symbol", "pe_oi", "ce_oi", "RSI(14)", "MA(10)", "ATR(14)", "MACD(7,20,1)", "MA(20, (TRIPLE EXPONENTIAL))"],
+        ["Time", "Symbol", "pe_oi", "ce_oi", "RSI(14)", "MA(10)", "ATR(14)", "MACD(7,20,1)", "MA(20, (TRIPLE EXPONENTIAL))" ,"rsi_14 > ma_10", "atr_14 > ma_10", "macd > ma_20_triple"],
+        [df_pe['Date'].iloc[-1], df_pe['symbol'].iloc[-1], put_oi, call_oi, df_pe.iloc[-1, rsi_14_column_number], 
+        df_pe.iloc[-1, moving_average_10_column_number], df_pe.iloc[-1, atr_14_column_number], df_pe.iloc[-1, macd_7_20_1_column_number],
+        df_pe.iloc[-1, moving_average_20_triple_exponential_column_number], df_ce.iloc[-1, rsi_14_column_number] > df_ce.iloc[-1, moving_average_10_column_number], 
+        df_ce.iloc[-1, atr_14_column_number] > df_ce.iloc[-1, moving_average_10_column_number],
+        df_ce.iloc[-1, macd_7_20_1_column_number] > df_ce.iloc[-1, moving_average_20_triple_exponential_column_number]],
         [df_pe['Date'].iloc[-2], df_pe['symbol'].iloc[-2], put_oi, call_oi, df_pe.iloc[-2, rsi_14_column_number], 
         df_pe.iloc[-2, moving_average_10_column_number], df_pe.iloc[-2, atr_14_column_number], df_pe.iloc[-2, macd_7_20_1_column_number],
-        df_pe.iloc[-2, moving_average_20_triple_exponential_column_number]],
-        [df_pe['Date'].iloc[-3], df_pe['symbol'].iloc[-3], put_oi, call_oi, df_pe.iloc[-3, rsi_14_column_number], 
-        df_pe.iloc[-3, moving_average_10_column_number], df_pe.iloc[-3, atr_14_column_number], df_pe.iloc[-3, macd_7_20_1_column_number],
-        df_pe.iloc[-3, moving_average_20_triple_exponential_column_number]],
+        df_pe.iloc[-2, moving_average_20_triple_exponential_column_number, df_ce.iloc[-2, rsi_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number], 
+        df_ce.iloc[-2, atr_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number],
+        df_ce.iloc[-2, macd_7_20_1_column_number] > df_ce.iloc[-2, moving_average_20_triple_exponential_column_number]],
     ]
     print(f"=====Put Side Check - Start - {str(datetime.datetime.now())}=========")
     print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
@@ -212,17 +220,17 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
         # call_oi != 0 and put_oi != 0,
         # call_oi > put_oi,
         any([
+            df_pe.iloc[-1, rsi_14_column_number] > df_pe.iloc[-1, moving_average_10_column_number],
             df_pe.iloc[-2, rsi_14_column_number] > df_pe.iloc[-2, moving_average_10_column_number],
-            df_pe.iloc[-3, rsi_14_column_number] > df_pe.iloc[-3, moving_average_10_column_number],
         ]),
         any([
+            df_pe.iloc[-1, atr_14_column_number] > df_pe.iloc[-1, moving_average_10_column_number],
             df_pe.iloc[-2, atr_14_column_number] > df_pe.iloc[-2, moving_average_10_column_number],
-            df_pe.iloc[-3, atr_14_column_number] > df_pe.iloc[-3, moving_average_10_column_number],
         ]),
-        df_pe.iloc[-2, macd_7_20_1_column_number] > 0,
+        df_pe.iloc[-1, macd_7_20_1_column_number] > 0,
         any([
+            df_pe.iloc[-1, macd_7_20_1_column_number] > df_pe.iloc[-1, moving_average_20_triple_exponential_column_number],
             df_pe.iloc[-2, macd_7_20_1_column_number] > df_pe.iloc[-2, moving_average_20_triple_exponential_column_number],
-            df_pe.iloc[-3, macd_7_20_1_column_number] > df_pe.iloc[-3, moving_average_20_triple_exponential_column_number],
         ])
     ]
     if all(put_side_conditions):
@@ -282,16 +290,16 @@ def check_indicator_exit(df, sl):
                 break
     print_data = [
         ["Time", "Symbol", "MACD(7,20,1)", "MOVING AVERAGE (20, (TRIPPLE EXPONNENTIAL))", "LTP", "SL"],
-        [df['Date'].iloc[-2], df['symbol'].iloc[-2], df.iloc[-2, macd_7_20_1_column_number], df.iloc[-2, moving_average_20_triple_exponential_column_number], ltp, sl],
-        [df['Date'].iloc[-3], df['symbol'].iloc[-3], df.iloc[-3, macd_7_20_1_column_number], df.iloc[-3, moving_average_20_triple_exponential_column_number], ltp, sl]
+        [df['Date'].iloc[-1], df['symbol'].iloc[-1], df.iloc[-1, macd_7_20_1_column_number], df.iloc[-1, moving_average_20_triple_exponential_column_number], ltp, sl],
+        [df['Date'].iloc[-2], df['symbol'].iloc[-2], df.iloc[-2, macd_7_20_1_column_number], df.iloc[-2, moving_average_20_triple_exponential_column_number], ltp, sl]
     ]
     print("==============")
     print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
     print("==============")
 
     if (
+        df.iloc[-1, macd_7_20_1_column_number] < df.iloc[-1, moving_average_20_triple_exponential_column_number] or
         df.iloc[-2, macd_7_20_1_column_number] < df.iloc[-2, moving_average_20_triple_exponential_column_number] or
-        df.iloc[-3, macd_7_20_1_column_number] < df.iloc[-3, moving_average_20_triple_exponential_column_number] or
         ltp < sl
     ):
         return df
