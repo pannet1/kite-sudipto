@@ -209,10 +209,9 @@ def generate_signal_fm_df(df_ce: pd.DataFrame, df_pe: pd.DataFrame, details: dic
         df_ce.iloc[-1, macd_7_20_1_column_number] > df_ce.iloc[-1, moving_average_20_triple_exponential_column_number]],
         [df_pe['Date'].iloc[-2], df_pe['symbol'].iloc[-2], put_oi, call_oi, df_pe.iloc[-2, rsi_14_column_number], 
         df_pe.iloc[-2, moving_average_10_column_number], df_pe.iloc[-2, atr_14_column_number], df_pe.iloc[-2, macd_7_20_1_column_number],
-        df_pe.iloc[-2, moving_average_20_triple_exponential_column_number, df_ce.iloc[-2, rsi_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number], 
+        df_pe.iloc[-2, moving_average_20_triple_exponential_column_number], df_ce.iloc[-2, rsi_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number], 
         df_ce.iloc[-2, atr_14_column_number] > df_ce.iloc[-2, moving_average_10_column_number],
         df_ce.iloc[-2, macd_7_20_1_column_number] > df_ce.iloc[-2, moving_average_20_triple_exponential_column_number]],
-    ]
     ]
     print(f"=====Put Side Check - Start - {str(datetime.datetime.now())}=========")
     print(tabulate(print_data, headers="firstrow", tablefmt="fancy_grid"))
